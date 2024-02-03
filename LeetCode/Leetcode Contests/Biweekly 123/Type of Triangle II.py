@@ -6,7 +6,6 @@ class Solution:
         nums.sort()
         
         
-        
         if nums[0] + nums[1] <= nums[2]:  
             return "none"  
 
