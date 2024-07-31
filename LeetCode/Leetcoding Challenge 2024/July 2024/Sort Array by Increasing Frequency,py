@@ -1,0 +1,13 @@
+
+class Solution:
+    def frequencySort(self, nums: List[int]) -> List[int]:
+
+        hashMap = Counter(nums)
+        n = len(nums)
+
+        def f(x):
+            return (hashMap[x], -x)
+        nums.sort(key=f)
+
+        return nums
+        
