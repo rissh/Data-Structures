@@ -151,3 +151,34 @@ def terminate_instance(application):
                 )
 
     return _terminate
+
+
+
+
+@main.command()
+@click.argument("spec", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.argument("output_dir", type=click.Path(file_okay=False, path_type=Path))
+@click.argument("module_name")
+@click.option("--generator-version", default=SUPPORTED_OPENAPI_VERSIONS[-1])
+@click.option("--cleanup/--no-cleanup", is_flag=True)
+def run_code_generator(
+    spec: Path,
+    output_dir: Path,
+    module_name: str,
+    generator_version: str,
+    cleanup: bool,
+) -> None:
+    purge_old_package(output_dir=Path(output_dir), module_name=module_name)
+    run_openapi_generator(
+        api_spec=spec,
+        output_dir=output_dir,
+        module_name=module_name,
+        skip_validate=False,
+        generator_version=generator_version,
+        backend=Backend.direct,
+    )
+    if cleanup:
+        prepare_plugin_for_commit(
+            output_dir=Path(output_dir), module_name=module_name, api_spec=spec
+        )
+
