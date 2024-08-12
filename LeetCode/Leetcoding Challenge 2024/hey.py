@@ -423,3 +423,35 @@ def refresh(ctx: PytestContext, cache_appdir: Path | str) -> None:
     cache_appdir = Path(cache_appdir)
     app = ctx.primary_application
     trigger_cache_regen(app, cache_appdir)
+
+
+------
+def delete_azure_vm_resources(compute_client, network_client, resource_group, vm_name):
+    """Delete a VM and its associated resources in Azure."""
+    vm = compute_client.virtual_machines.get(resource_group, vm_name)
+    disk_name = vm.storage_profile.os_disk.managed_disk.id.split("/")[-1]
+    nic_name = vm.network_profile.network_interfaces[0].id.split("/")[-1]
+    
+    # Delete VM
+    compute_client.virtual_machines.begin_delete(resource_group, vm_name).wait()
+    
+    # Delete associated resources
+    compute_client.disks.begin_delete(resource_group, disk_name).wait()
+    network_client.network_interfaces.begin_delete(resource_group, nic_name).wait()
+
+def terminate_azure_instances(cloud_creds, instance_ids, resource_group):
+    """Terminate Azure instances and their resources."""
+    credential = ClientSecretCredential(
+        tenant_id=cloud_creds.AZURE.tenant_id,
+        client_id=cloud_creds.AZURE.client_id,
+        client_secret=cloud_creds.AZURE.client_secret,
+    )
+    subscription_id = cloud_creds.AZURE.subscription_id
+
+    compute_client = ComputeManagementClient(credential, subscription_id)
+    network_client = NetworkManagementClient(credential, subscription_id)
+
+    for vm_id in instance_ids:
+        vm_name = vm_id.split("/")[-1]
+        delete_azure_vm_resources(compute_client, network_client, resource_group, vm_name)
+
