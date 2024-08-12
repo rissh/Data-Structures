@@ -153,14 +153,13 @@ def terminate_instance(application):
     return _terminate
 
 
-
-
+---------
 @main.command()
 @click.argument("spec", type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.argument("output_dir", type=click.Path(file_okay=False, path_type=Path))
 @click.argument("module_name")
-@click.option("--generator-version", default=SUPPORTED_OPENAPI_VERSIONS[-1])
-@click.option("--cleanup/--no-cleanup", is_flag=True)
+@click.option("--generator-version", default=SUPPORTED_OPENAPI_VERSIONS[-1], help="Specify the version of the OpenAPI generator to use. Defaults to the latest supported version.")
+@click.option("--cleanup/--no-cleanup", is_flag=True, help="Option to clean up the generated files after running the generator.")
 def run_code_generator(
     spec: Path,
     output_dir: Path,
@@ -168,6 +167,15 @@ def run_code_generator(
     generator_version: str,
     cleanup: bool,
 ) -> None:
+    """
+    Generate a client using the provided OpenAPI specification.
+
+    SPEC: Path to the OpenAPI spec file.
+
+    OUTPUT_DIR: Directory where the generated code will be saved.
+
+    MODULE_NAME: Name of the Python module to be generated.
+    """
     purge_old_package(output_dir=Path(output_dir), module_name=module_name)
     run_openapi_generator(
         api_spec=spec,
@@ -181,4 +189,5 @@ def run_code_generator(
         prepare_plugin_for_commit(
             output_dir=Path(output_dir), module_name=module_name, api_spec=spec
         )
+
 
